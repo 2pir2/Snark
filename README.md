@@ -43,4 +43,7 @@ In order to use circom, it is recommended to use a linux system (I tried windows
         - `const sScalar = Math.floor(buffScalars.byteLength / nPoints);`
     - save all your changes.
     - [refer to this link if you have any problems](https://github.com/iden3/snarkjs/issues/301)
-
+___
+## Run an example
+It is recommended to run an example file to make sure everything is install properly. 
+1. Download the example file in this github repo, there are going to be a few examples there. 
