@@ -28,4 +28,17 @@ In order to use circom, it is recommended to use a linux system (I tried windows
         - snarkjs --version
 8. Install some libraries for C++ (Current location /home/username)
     - sudo apt install -y nlohmann-json3-dev libgmp-dev nasm
+9. Some additional notes
+    - if Snarkjs prints out error that says "Error: Scalar size does not match", you need to go change a file in snarkjs.
+    - First, use command to open main.cjs
+        - cd $(npm root -g)/snarkjs/node_modules/ffjavascript/build
+        - nano main.cjs
+    - Second, open the main.cjs by using 'nano main.cjs' (The file is super long, using vscode iss highly recommanded)
+    - Next, search for the line
+        - const nPoints = Math.floor(buffBases.byteLength / sGIn);
+        - const sScalar = Math.floor(buffScalars.byteLength / nPoints);
+    - Finally, replace them with
+        - const nPoints = Math.floor(buffBases.byteLength / sGIn);
+        - <mark style="background-color: yellow"> if (nPoints == 0) return G.zero; // add new here </mark>
+        - const sScalar = Math.floor(buffScalars.byteLength / nPoints);
 
