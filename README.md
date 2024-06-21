@@ -59,5 +59,5 @@ It is recommended to run an example file to make sure everything is install prop
 10. `snarkjs zkey contribute multiand_0000.zkey multiand_0001.zkey --name="1st Contributor Name" -v`
 11. `snarkjs zkey export verificationkey multiand_0001.zkey verification_key.json`
 12. `node generate_witness.js multiand.wasm input.json witness.wtns`
-13. `snarkjs groth16 prove ../multiand_0001.zkey witness.wtns proof.json public.json`
-14. `snarkjs groth16 verify ../verification_key.json public.json proof.json`
+13. `snarkjs groth16 prove ./multiand_0001.zkey witness.wtns proof.json public.json`
+14. `snarkjs groth16 verify ./verification_key.json public.json proof.json`
