@@ -46,4 +46,18 @@ In order to use circom, it is recommended to use a linux system (I tried windows
 ___
 ## Run an example
 It is recommended to run an example file to make sure everything is install properly. 
-1. Download the example file in this github repo, there are going to be a few examples there. 
+1. Download the example folder in this github repo, and use the multiand example.
+2. `cd example`
+3. `cd MultiAnd`
+4. `circom multiand.circom --r1cs --wasm --sym`
+   - This step will generate a folder called multiand_js. Open the folder, and drag all three files inside the folder out, so it will be in the same directory as multiand.circom.
+5. Create a file called 'input.json' in the same directory as multiand.circom, put the following inside it: `{"in": [1, 1, 0, 1]}`
+6. `snarkjs powersoftau new bn128 12 pot12_0000.ptau -v`
+7. `snarkjs powersoftau contribute pot12_0000.ptau pot12_0001.ptau --name="First contribution" -v`
+8. `snarkjs powersoftau prepare phase2 pot12_0001.ptau pot12_final.ptau -v`
+9. `snarkjs groth16 setup multiand.r1cs pot12_final.ptau multiand_0000.zkey`
+10. `snarkjs zkey contribute multiand_0000.zkey multiand_0001.zkey --name="1st Contributor Name" -v`
+11. `snarkjs zkey export verificationkey multiand_0001.zkey verification_key.json`
+12. `node generate_witness.js multiand.wasm input.json witness.wtns`
+13. `snarkjs groth16 prove ../multiand_0001.zkey witness.wtns proof.json public.json`
+14. `snarkjs groth16 verify ../verification_key.json public.json proof.json`
