@@ -56,8 +56,10 @@ It is recommended to run an example file to make sure everything is install prop
 7. `snarkjs powersoftau contribute pot12_0000.ptau pot12_0001.ptau --name="First contribution" -v`
 8. `snarkjs powersoftau prepare phase2 pot12_0001.ptau pot12_final.ptau -v`
 9. `snarkjs groth16 setup multiand.r1cs pot12_final.ptau multiand_0000.zkey`
-10. `snarkjs zkey contribute multiand_0000.zkey multiand_0001.zkey --name="1st Contributor Name" -v`
-11. `snarkjs zkey export verificationkey multiand_0001.zkey verification_key.json`
-12. `node generate_witness.js multiand.wasm input.json witness.wtns`
-13. `snarkjs groth16 prove ./multiand_0001.zkey witness.wtns proof.json public.json`
-14. `snarkjs groth16 verify ./verification_key.json public.json proof.json`
+12. `snarkjs zkey contribute multiand_0000.zkey multiand_0001.zkey --name="1st Contributor Name" -v`
+13. `snarkjs zkey export verificationkey multiand_0001.zkey verification_key.json`
+14. `node generate_witness.js multiand.wasm input.json witness.wtns`
+15. `snarkjs groth16 prove ./multiand_0001.zkey witness.wtns proof.json public.json`
+16. `snarkjs groth16 verify ./verification_key.json public.json proof.json`
+17. After all those steps, the terminal should print: snarkjs: OK. Which indicates that it is valid.
+18. In order to make sure it will reject the invalid input, change the code in public.json from `["0"]` to `["1"]`, and use command  `snarkjs groth16 verify ./verification_key.json public.json proof.json` again, it will show: SnarkJS: Invalide Proof
