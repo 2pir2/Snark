@@ -3,14 +3,19 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
-	
 
 	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/frontend"
 	"github.com/consensys/gnark/frontend/cs/r1cs"
+)
+
+const (
+	pubInputFile = "public.json"
+	priInputFile = "private.json"
+	vkKeyFile    = "vk.g16vk"
+	proofFile    = "proof.g16p"
 )
 
 type SudokuCircuit struct {
@@ -75,26 +80,29 @@ func (circuit *SudokuCircuit) Define(api frontend.API) error {
 	return nil
 }
 
-func main() {
-	
-	incompleteFile, err := ioutil.ReadFile("public.json")
-	if(err != nil){
-		fmt.Print(err);
+func createProofAndVK() error {
+	// Read the public (incomplete) and private (complete) Sudoku grids from JSON files
+	incompleteFile, err := os.ReadFile(pubInputFile)
+	if err != nil {
+		return fmt.Errorf("failed to read %s: %v", pubInputFile, err)
 	}
 
-	completeFile, err := ioutil.ReadFile("private.json")
-	if(err != nil){
-		fmt.Print(err);
+	completeFile, err := os.ReadFile(priInputFile)
+	if err != nil {
+		return fmt.Errorf("failed to read %s: %v", priInputFile, err)
 	}
-	
 
 	var incompleteSudoku Sudoku
 	err = json.Unmarshal(incompleteFile, &incompleteSudoku)
-
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal incomplete Sudoku: %v", err)
+	}
 
 	var completeSudoku Sudoku
 	err = json.Unmarshal(completeFile, &completeSudoku)
-
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal complete Sudoku: %v", err)
+	}
 
 	// Create the circuit assignment
 	assignment := &SudokuCircuit{}
@@ -105,27 +113,63 @@ func main() {
 		}
 	}
 
-	
-
+	// Create the circuit and witness
 	var myCircuit SudokuCircuit
-	
-	witness, _ := frontend.NewWitness(assignment, ecc.BN254.ScalarField())
-	
-	cs, _ := frontend.Compile(ecc.BN254.ScalarField(), r1cs.NewBuilder, &myCircuit)
-	
+	witness, err := frontend.NewWitness(assignment, ecc.BN254.ScalarField())
+	if err != nil {
+		return fmt.Errorf("failed to create witness: %v", err)
+	}
 
-	pk, vk, _ := groth16.Setup(cs)
-	
+	cs, err := frontend.Compile(ecc.BN254.ScalarField(), r1cs.NewBuilder, &myCircuit)
+	if err != nil {
+		return fmt.Errorf("failed to compile circuit: %v", err)
+	}
 
-	proof, _ := groth16.Prove(cs, pk, witness)
-	proofJSON,_ := json.Marshal(proof)
-	_ = os.WriteFile("gnark_proof.json", proofJSON, 0644)
+	// Groth16 setup (generate proving and verification keys)
+	pk, vk, err := groth16.Setup(cs)
+	if err != nil {
+		return fmt.Errorf("failed to setup Groth16: %v", err)
+	}
 
-	vkJSON, _ := json.Marshal(vk)
-	_ = os.WriteFile("gnark_vk.json", vkJSON, 0644)
+	// Generate the proof
+	proof, err := groth16.Prove(cs, pk, witness)
+	if err != nil {
+		return fmt.Errorf("failed to create proof: %v", err)
+	}
 
-	witnessJSON, _ := json.Marshal(witness)
-	_ = os.WriteFile("gnark_witness.json", witnessJSON, 0644)
+	// Write the verification key to a file
+	vkF, err := os.Create(vkKeyFile)
+	if err != nil {
+		return fmt.Errorf("failed to create %s: %v", vkKeyFile, err)
+	}
+	defer vkF.Close()
 
+	_, err = vk.WriteTo(vkF)
+	if err != nil {
+		return fmt.Errorf("failed to write verification key: %v", err)
+	}
 
+	// Write the proof to a file
+	proofF, err := os.Create(proofFile)
+	if err != nil {
+		return fmt.Errorf("failed to create %s: %v", proofFile, err)
+	}
+	defer proofF.Close()
+
+	_, err = proof.WriteTo(proofF)
+	if err != nil {
+		return fmt.Errorf("failed to write proof: %v", err)
+	}
+
+	fmt.Println("Proof and verification key files have been successfully generated.")
+	return nil
+}
+
+func main() {
+	// Call the function to generate the proof and vk file
+	if err := createProofAndVK(); err != nil {
+		fmt.Printf("Error: %v\n", err)
+	} else {
+		fmt.Println("Sudoku proof and vk generation completed.")
+	}
 }
